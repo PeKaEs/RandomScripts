@@ -12,7 +12,11 @@ def enum(start, stop, listOfPatterns, listOfAntiPatterns, baseUrl):
 
     for i in range (start,stop + 1):
         urlStr = baseUrl+str(i)
-        rResponse = requests.get(urlStr).text
+
+        try:
+            rResponse = requests.get(urlStr).text
+        except:
+            continue
 
         html = rResponse
         parsed_html = BeautifulSoup(html)
@@ -47,15 +51,15 @@ baseUrl = "http://www.wklej.org/id/"
 countFrom = 3153014
 openedUrlsCounter = 0
 patternList = ["cda", "premium", "Premium", "haslo", "Haslo", "haselko", "Haselko", "pass", "password", "Pass", "Password"]
-antiPatternList = ["&lt;a href=&quot;", "ahref=&quot;", "else", "void", "include", "Farbar Recovery Scan Tool"]
+antiPatternList = ["&lt;a href=&quot;", "ahref=&quot;", "else", "void", "include", "Farbar Recovery Scan Tool", "(FRST)"]
 
-for x in range(50):
-    for i in range(200):
+for x in range(200):
+    for i in range(100):
 
-        child = threading.Thread(target = enum , args = (countFrom - 100, countFrom ,patternList, antiPatternList, baseUrl ))
+        child = threading.Thread(target = enum , args = (countFrom - 50, countFrom ,patternList, antiPatternList, baseUrl ))
         child.start()
-        print "From: %d To: %d" % (countFrom - 100,countFrom )
-        countFrom = countFrom - 100
+        print "From: %d To: %d" % (countFrom - 50,countFrom )
+        countFrom = countFrom - 50
 
     mainThread = threading.currentThread()
     for t in threading.enumerate():
