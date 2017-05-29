@@ -4,25 +4,27 @@ from BeautifulSoup import BeautifulSoup
 import sys
 import os
 import threading
+from lxml import html
 
 def enum(start, stop, listOfPatterns, listOfAntiPatterns, baseUrl):
 
     rangeWidth = stop-start
     lock = threading.Lock()
+    threadSession = requests.Session()
 
     for i in range (start,stop + 1):
         urlStr = baseUrl+str(i)
 
         try:
-            rResponse = requests.get(urlStr).text
+            rResponse = threadSession.get(urlStr).text
         except:
             continue
 
-        html = rResponse
-        parsed_html = BeautifulSoup(html)
-        foundResult = parsed_html.find('td', attrs={'class':'code'})
-        if foundResult != None:
-            gitResp = foundResult.text
+        parsed_html = html.fromstring(rResponse)
+        foundResult = parsed_html.cssselect("td.code")
+
+        if foundResult != None and foundResult != []:
+            gitResp = foundResult[0].text_content()
             iGotIt = False
 
             if any(antiPattern in gitResp for antiPattern in listOfAntiPatterns):
@@ -51,15 +53,15 @@ baseUrl = "http://www.wklej.org/id/"
 countFrom = 3153014
 openedUrlsCounter = 0
 patternList = ["cda", "premium", "Premium", "haslo", "Haslo", "haselko", "Haselko", "pass", "password", "Pass", "Password"]
-antiPatternList = ["&lt;a href=&quot;", "ahref=&quot;", "else", "void", "include", "Farbar Recovery Scan Tool", "(FRST)"]
+antiPatternList = ["&lt;a href=&quot;", "ahref=&quot;", "else", "void", "include", "Farbar Recovery Scan Tool", "(FRST)", "<a href=", "ahref", "Uruchomiony przez"]
 
-for x in range(200):
-    for i in range(100):
+for x in range(10):
+    for i in range(1000):
 
-        child = threading.Thread(target = enum , args = (countFrom - 50, countFrom ,patternList, antiPatternList, baseUrl ))
+        child = threading.Thread(target = enum , args = (countFrom - 100, countFrom ,patternList, antiPatternList, baseUrl ))
         child.start()
-        print "From: %d To: %d" % (countFrom - 50,countFrom )
-        countFrom = countFrom - 50
+        print "From: %d To: %d" % (countFrom - 100,countFrom )
+        countFrom = countFrom - 100
 
     mainThread = threading.currentThread()
     for t in threading.enumerate():
