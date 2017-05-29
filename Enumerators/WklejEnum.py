@@ -5,9 +5,8 @@ import sys
 import os
 import threading
 
-def enum(start, stop):
+def enum(start, stop, listOfPatterns, listOfAntiPatterns, baseUrl):
 
-    baseUrl = "http://www.wklej.org/id/"
     rangeWidth = stop-start
     lock = threading.Lock()
 
@@ -22,11 +21,9 @@ def enum(start, stop):
             gitResp = foundResult.text
             iGotIt = False
 
-            if "cda" in gitResp and "&lt;a href=&quot;" not in gitResp and "ahref=&quot;" not in gitResp:
-                iGotIt = True
-            elif "premium" in gitResp and "&lt;a href=&quot;" not in gitResp and "ahref=&quot;" not in gitResp:
-                iGotIt = True
-            elif "Premium" in gitResp and "&lt;a href=&quot;" not in gitResp and "ahref=&quot;" not in gitResp:
+            if any(antiPattern in gitResp for antiPattern in listOfAntiPatterns):
+                continue
+            if any(pattern in gitResp for pattern in listOfPatterns):
                 iGotIt = True
 
             if iGotIt:
@@ -47,15 +44,17 @@ def enum(start, stop):
     print "Search completed 100%"
 
 baseUrl = "http://www.wklej.org/id/"
-countFrom = 3151200
+countFrom = 3153014
 openedUrlsCounter = 0
+patternList = ["cda", "premium", "Premium", "haslo", "Haslo", "haselko", "Haselko", "pass", "password", "Pass", "Password"]
+antiPatternList = ["&lt;a href=&quot;", "ahref=&quot;", "else", "void", "include", "Farbar Recovery Scan Tool"]
 
-for i in range(200):
+for i in range(400):
 
-    child = threading.Thread(target = enum , args = (countFrom - 100, countFrom ,))
+    child = threading.Thread(target = enum , args = (countFrom - 2500, countFrom ,patternList, antiPatternList, baseUrl ))
     child.start()
-    print "From: %d To: %d" % (countFrom - 100,countFrom )
-    countFrom = countFrom - 100
+    print "From: %d To: %d" % (countFrom - 2500,countFrom )
+    countFrom = countFrom - 2500
 
 mainThread = threading.currentThread()
 for t in threading.enumerate():
